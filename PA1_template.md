@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
@@ -12,10 +7,10 @@ output:
 We'll start by loading the libraries used in this analysis.
 
 #### Libraries....
-```{r message=FALSE}
+
+```r
 library("dplyr")
 library ("ggplot2")
-  
 ```
 
 #### Loading Data...  
@@ -23,7 +18,8 @@ Note the use of unz to save us a step, and a file. We also chose to use read.csv
 The data for this analysis can be obtained here:  
 [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip)
 
-```{r}
+
+```r
 # load the data
 activityData <- read.csv2(unz("activity.zip", "activity.csv"), 
                           sep = ",", 
@@ -32,9 +28,8 @@ activityData <- read.csv2(unz("activity.zip", "activity.csv"),
 
 #### Processing Data....  
 We will use dlpyr for all the goodies it allows when shaping data.
-```{r echo=TRUE, message=FALSE}
 
-
+```r
 # rewrite the dataset as a Table to make it easier to use later
 activityData <- tbl_df(activityData)
 ```
@@ -47,7 +42,8 @@ activityData <- tbl_df(activityData)
   We use some dplyr goodness to group and summarise the data into a daily set.
   We the plot the histogram using the hist function.
   
-```{r}
+
+```r
 # summarise the total daily steps
 dailySteps <- summarise(
                 group_by(activityData, date), 
@@ -58,16 +54,26 @@ dailySteps <- summarise(
 hist(dailySteps$steps, breaks = 30, main = "Total Steps per Day", xlab ="Total Steps" )
 ```
 
-#### Mean total steps taken per day is: 10,766.19
-```{r}
-mean(dailySteps$steps, na.rm = TRUE)
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
+#### Mean total steps taken per day is: 10,766.19
+
+```r
+mean(dailySteps$steps, na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
 ```
 
 #### Median total steps taken per day is: 10,765
-```{r}
-median(dailySteps$steps, na.rm = TRUE)
 
+```r
+median(dailySteps$steps, na.rm = TRUE)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
@@ -76,7 +82,8 @@ median(dailySteps$steps, na.rm = TRUE)
   We will numeric verion on the set that we plot in order to sort appropriately.
   We will use dplyr magic to summarise by interval
 
-```{r}
+
+```r
 # summarise the average steps by 5minute interval.
 averageStepsByInterval <- summarise(
                             group_by(activityData, interval), 
@@ -94,14 +101,22 @@ qplot(averageStepsByInterval$interval,
     sub = "Average Steps 1-Oct-2012 to 30-Nov-2012",
     xlab = "<-- Start-of-Day   to   End-of-Day ---> ",
     ylab = "Mean Steps")
-
-
 ```
 
-#### Which 5 minute interval has the highest average number of steps.  
-```{r}
-averageStepsByInterval[which.max(averageStepsByInterval$average_steps), c("interval","average_steps")]
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
 
+#### Which 5 minute interval has the highest average number of steps.  
+
+```r
+averageStepsByInterval[which.max(averageStepsByInterval$average_steps), c("interval","average_steps")]
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval average_steps
+##      (dbl)         (dbl)
+## 1      835      206.1698
 ```
 
 Interval 835 has the highest average steps at 206.1698 steps during the 5minutes.
@@ -111,9 +126,14 @@ Interval 835 has the highest average steps at 206.1698 steps during the 5minutes
 Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
 
 #### Calculate the total number of missing values in the dataset.
-```{r}
+
+```r
 # Count the rows where steps = NA
 sum(is.na(activityData$steps))
+```
+
+```
+## [1] 2304
 ```
   
 There are 2034 rows where steps = NA.
@@ -122,7 +142,8 @@ There are 2034 rows where steps = NA.
 
 After reviewing the data, I've decided to assign the average value of each DayOfWeek and Interval combination to the missing values. This will be done at the lowest grain and will therefore impact all prior means and medians. We will start by creating a summary by day-of-week and intarval anc calculating the mean of each group. We will then assign those means to the NAs.
 
-```{r}
+
+```r
 # get the average steps by day of week and interval.
 averageStepsByWeekdayInterval <- summarise(
                                     group_by(activityData, weekday = weekdays(date),interval), 
@@ -134,13 +155,13 @@ activityDataComplete <- merge(cbind(activityData,weekday = weekdays(activityData
 
 # set the steps column = to weekdayinterval_averagesteps where steps=NA
 activityDataComplete$steps <- ifelse(is.na(activityDataComplete$steps),activityDataComplete$weekdayinterval_averagesteps, activityDataComplete$steps)
-
 ```
   
 #### Make a histogram of the total number of steps taken each day
 Identical to the first step, we aggregate a set to daily total steps and then plot it.
 
-```{r}
+
+```r
 # summarise the total daily steps
 dailyImputedSteps <- summarise(
                 group_by(activityDataComplete, date), 
@@ -151,16 +172,27 @@ dailyImputedSteps <- summarise(
 hist(dailyImputedSteps$steps, breaks = 30, main = "Total Steps per Day (using Imputed Data)", xlab ="Total Steps" )
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
+
 
 #### Mean total steps taken per day is (using Imputed data): 10,821.21
-```{r}
+
+```r
 mean(dailyImputedSteps$steps, na.rm = TRUE)
 ```
 
-#### Median total steps taken per day is  (using Imputed data): 11,015
-```{r}
-median(dailyImputedSteps$steps, na.rm = TRUE)
+```
+## [1] 10821.21
+```
 
+#### Median total steps taken per day is  (using Imputed data): 11,015
+
+```r
+median(dailyImputedSteps$steps, na.rm = TRUE)
+```
+
+```
+## [1] 11015
 ```
 
 #### The impact of Imputation
@@ -174,7 +206,8 @@ Compare these last 3 reported results to the first 3.
 This one is simple. Saturdays and Sundays are on the weekend.
 We will use mutate from dplyr to add the new factor.
 
-```{r}
+
+```r
 activityDataComplete <- mutate(activityDataComplete,
                                weekend = ifelse(weekday == "Saturday" | weekday == "Sunday", "weekend", "weekday"))
 ```
@@ -185,7 +218,8 @@ We start by summarising the dataset by "weekend" and "interval" aggregating the 
 We the need to coerce the interval from character to numberic so that we can plot it on the y axis.
 We are plotting using ggplot and will include two facets to show Weekday and WeekEnd side by side.
 
-```{r}
+
+```r
 # summarise the data
 weekendintervalSteps <- summarise(
                 group_by(activityDataComplete, weekend, interval), 
@@ -201,5 +235,7 @@ ggplot(weekendintervalSteps,aes(interval,averagesteps)) +
                  facet_grid(. ~ weekend) +
                  geom_line(size = 1)
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-15-1.png) 
 
 There is a clear differince between weekdays and weekends which is not surprising since people tend to be more active on weekends.
